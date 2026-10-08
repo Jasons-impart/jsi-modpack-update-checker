@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set release variables
+        id: vars
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION_PATTERN='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
+          if [[ ! "$VERSION" =~ $VERSION_PATTERN ]]; then
+            printf 'Invalid release tag: %s\n' "$GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+
+          VERSION_TYPE=release
+          BASE_VERSION="${VERSION%%+*}"
+          if [[ "$BASE_VERSION" == *-* ]]; then
+            IFS='.' read -r -a PRERELEASE_IDENTIFIERS <<< "${BASE_VERSION#*-}"
+            for IDENTIFIER in "${PRERELEASE_IDENTIFIERS[@]}"; do
+              if [[ "$IDENTIFIER" =~ ^[0-9]+$ && "$IDENTIFIER" != 0 && "$IDENTIFIER" == 0* ]]; then
+                printf 'Invalid numeric prerelease identifier: %s\n' "$IDENTIFIER" >&2
+                exit 1
+              fi
+            done
+            VERSION_TYPE=beta
+          fi
+
+          {
+            echo "version=$VERSION"
+            echo "version_type=$VERSION_TYPE"
+            echo "name=Modpack Update Checker $VERSION for Minecraft 1.21.1"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+
+      - name: Make Gradle wrapper executable
+        shell: bash
+        run: chmod +x ./gradlew
+
+      - name: Build and test
+        shell: bash
+        run: |
+          ./gradlew clean build \
+            -Pmod_version="$RELEASE_VERSION" \
+            -Pmod_repository_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            --console=plain --no-daemon
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.version }}
+
+      - name: Collect release jar
+        id: asset
+        shell: bash
+        run: |
+          mapfile -t jars < <(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | sort)
+          EXPECTED_JAR="build/libs/modpack_update_checker-$RELEASE_VERSION.jar"
+          if [[ "${#jars[@]}" -ne 1 || "${jars[0]:-}" != "$EXPECTED_JAR" ]]; then
+            printf 'Expected exactly one release jar at %s; found:\n' "$EXPECTED_JAR" >&2
+            printf '%s\n' "${jars[@]}" >&2
+            exit 1
+          fi
+          echo "jar=$EXPECTED_JAR" >> "$GITHUB_OUTPUT"
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.version }}
+
+      - name: Publish GitHub release
+        uses: Kir-Antipov/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3.3
+        with:
+          files: ${{ steps.asset.outputs.jar }}
+          name: ${{ steps.vars.outputs.name }}
+          version: ${{ steps.vars.outputs.version }}
+          version-type: ${{ steps.vars.outputs.version_type }}
+          changelog: "Automated tag build for Minecraft 1.21.1 / NeoForge."
+          loaders: neoforge
+          game-versions: 1.21.1
+          java: 21
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-tag: ${{ github.ref_name }}
