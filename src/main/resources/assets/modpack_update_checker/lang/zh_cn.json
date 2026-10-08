@@ -1,0 +1,15 @@
+{
+  "modpack_update_checker.title": "整合包版本检查",
+  "modpack_update_checker.status.idle": "检查整合包更新",
+  "modpack_update_checker.status.checking": "正在检查整合包更新…",
+  "modpack_update_checker.status.unconfigured": "配置整合包更新",
+  "modpack_update_checker.status.current": "未发现整合包新版本",
+  "modpack_update_checker.status.available": "发现整合包更新",
+  "modpack_update_checker.status.development": "当前为开发构建",
+  "modpack_update_checker.status.error": "整合包检查失败",
+  "modpack_update_checker.retry": "重新检查",
+  "modpack_update_checker.open": "查看 GitHub",
+  "modpack_update_checker.installed": "已安装：%s",
+  "modpack_update_checker.target": "推荐版本：%s",
+  "modpack_update_checker.configure": "请使用整合包作者提供的配置，放入 config/modpack-update-checker.json。"
+}

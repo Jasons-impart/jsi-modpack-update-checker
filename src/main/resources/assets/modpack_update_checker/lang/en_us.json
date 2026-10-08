@@ -1,0 +1,15 @@
+{
+  "modpack_update_checker.title": "Modpack Update Checker",
+  "modpack_update_checker.status.idle": "Check pack updates",
+  "modpack_update_checker.status.checking": "Checking pack updates...",
+  "modpack_update_checker.status.unconfigured": "Configure pack updates",
+  "modpack_update_checker.status.current": "No newer pack version",
+  "modpack_update_checker.status.available": "Pack update available",
+  "modpack_update_checker.status.development": "Development build",
+  "modpack_update_checker.status.error": "Pack check failed",
+  "modpack_update_checker.retry": "Check again",
+  "modpack_update_checker.open": "Open GitHub",
+  "modpack_update_checker.installed": "Installed: %s",
+  "modpack_update_checker.target": "Recommended: %s",
+  "modpack_update_checker.configure": "Add config/modpack-update-checker.json using the pack author's configuration."
+}

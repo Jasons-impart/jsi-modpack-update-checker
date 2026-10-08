@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "packId": "cdpr",
+  "displayName": "Create Delight Project Rebirth",
+  "check": {
+    "onMainMenu": true,
+    "source": "github-tags",
+    "repository": "Jasons-impart/Create-Delight-Project-Rebirth",
+    "versionRules": { "template": "numeric-four", "channelPolicy": "follow-installed" }
+  },
+  "installed": { "releaseInfoPath": "config/createdelight_release_info.json" }
+}

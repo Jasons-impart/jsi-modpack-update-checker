@@ -1,0 +1,20 @@
+type = fancymenu_layout
+
+layout-meta {
+  identifier = title_screen
+  is_enabled = true
+  randommode = false
+  layout_index = 1
+}
+
+vanilla_button {
+  element_type = vanilla_button
+  instance_identifier = modpack_update_checker_status
+  anchor_point = bottom-left
+  x = 8
+  y = -100
+  width = 150
+  height = 20
+  stay_on_screen = true
+  is_hidden = false
+}
